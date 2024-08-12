@@ -1,0 +1,39 @@
+controllers:
+  main:
+    containers:
+      main:
+        env:
+          TZ: Etc/UTC
+        image:
+          pullPolicy: Always
+          repository: lscr.io/linuxserver/jellyfin
+          tag: latest
+    strategy: Recreate
+ingress:
+  main:
+    hosts:
+      - host: media.kube.007337.xyz
+        paths:
+          - path: /jellyfin
+            pathType: Prefix
+            service:
+              identifier: main
+              port: http
+persistence:
+  config:
+    accessMode: ReadWriteOnce
+    enabled: true
+    size: 1Gi
+    type: persistentVolumeClaim
+  data:
+    enabled: true
+    path: /pool0/media/
+    server: nfs.home.007337.xyz
+    type: nfs
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 8096
+    type: ClusterIP
