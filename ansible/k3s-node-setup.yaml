@@ -1,0 +1,25 @@
+- hosts: fedora:&k3s
+  become: yes
+  tasks:
+    - name: install all necessary packages
+      dnf:
+        name: 
+          - iscsi-initiator-utils
+          - curl
+          - nfs-utils
+          - jq
+          - qemu-guest-agent
+        state: present
+
+    - name: Create a ext4 filesystem on /dev/sdb1 and check disk blocks
+      community.general.filesystem:
+        fstype: ext4
+        dev: /dev/sdb
+
+    - name: Mount sdb
+      mount:
+        path: /var/longhorn
+        src: /dev/sdb
+        fstype: ext4
+        state: present
+

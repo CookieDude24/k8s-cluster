@@ -1,0 +1,31 @@
+- hosts: almalinux:&docker
+  become: yes
+  tasks:
+
+    - name: ensure Docker repo is enabled
+      ansible.builtin.yum_repository:
+        name: docker-ce
+        description: Docker-CE repo
+        baseurl: https://download.docker.com/linux/centos/9/x86_64/stable/
+
+    - name: Install Docker and plugins
+      dnf:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Add docker user
+      user:
+        name: docker
+        state: present
+        create_home: true
+        
+    - name: enable and start docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes
