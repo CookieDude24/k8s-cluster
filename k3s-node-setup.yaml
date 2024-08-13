@@ -1,0 +1,44 @@
+- hosts: fedora:&k3s
+  become: yes
+  tasks:
+    - name: install all necessary packages
+      dnf:
+        name: 
+          - iscsi-initiator-utils
+          - curl
+          - nfs-utils
+          - jq
+          - qemu-guest-agent
+        state: present
+
+    - name: start qemu agent
+      ansible.builtin.systemd_service:
+        name: qemu-guest-agent
+        state: started
+        enabled: true
+
+    - name: Create a ext4 filesystem on /dev/sdb1 and check disk blocks
+      community.general.filesystem:
+        fstype: ext4
+        dev: /dev/sdb
+
+    - name: Mount sdb
+      mount:
+        path: /var/longhorn
+        src: /dev/sdb
+        fstype: ext4
+        state: present
+
+    - name: reboot if requiered
+      ansible.builtin.command: needs-restarting -r
+      register: reboot_required
+      failed_when: false
+      changed_when: reboot_required.rc != 0
+      notify:
+        - rebooting
+
+  handlers:
+    - name: rebooting
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by Ansible"
+        reboot_timeout: 3600
