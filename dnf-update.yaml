@@ -1,0 +1,62 @@
+- hosts: almalinux:fedora
+  become: yes
+  tasks:
+    - name: ensure Basic tools are installed
+      dnf:
+        name: 
+          - dnf-plugins-core
+          - nano
+        state: present
+
+    - name: Install epel-release
+      dnf:
+        name: epel-release
+        state: present
+      when: inventory_hostname in groups["almalinux"]
+
+    - name: Update all packages
+      ansible.builtin.dnf:
+        name: '*'
+        state: latest
+
+    - name: Autoremove unneeded packages installed as dependencies
+      ansible.builtin.dnf:
+        autoremove: yes
+
+    - name: Add the user maxid
+      ansible.builtin.user:
+        name: maxid
+        shell: /bin/bash
+        groups: wheel
+        append: yes
+
+    - name: Allow the bob user to run any commands as alice with sudo -u alice
+      community.general.sudoers:
+        name: maxid-sudo
+        state: present
+        user: maxid
+        commands: ALL
+        nopassword: true
+
+    - name: Set authorized keys taken from url
+      ansible.posix.authorized_key:
+        user: maxid
+        state: present
+        key: "{{ lookup('url', 'https://github.com/CookieDude24.keys', split_lines=False) }}"
+        path: /home/maxid/.ssh/authorized_keys
+
+
+    - name: reboot if requiered
+      ansible.builtin.command: needs-restarting -r
+      register: reboot_required
+      failed_when: false
+      changed_when: reboot_required.rc != 0
+      notify:
+          - Reboot Almalinux
+
+  handlers:
+      - name: Reboot Almalinux
+        ansible.builtin.reboot:
+            msg: "Reboot initiated by Ansible"
+            reboot_timeout: 3600
+            test_command: w
