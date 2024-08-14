@@ -1,0 +1,33 @@
+controllers:
+  main:
+    containers:
+      main:
+        env:
+          TZ: Etc/UTC
+        image:
+          pullPolicy: Always
+          repository: fallenbagel/jellyseerr
+          tag: latest
+    strategy: Recreate
+ingress:
+  main:
+    hosts:
+      - host: jellyseerr.kube.007337.xyz
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: main
+              port: http
+persistence:
+  config:
+    existingClaim: jellyseerr-config
+    globalMounts:
+      - path: /app/config
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 5055
+    type: ClusterIP
