@@ -1,0 +1,9 @@
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://github.com/CookieDude24/kubernetes.git
+    targetRevision: HEAD
+  automated:
+    selfHeal: true
+    prune: true
