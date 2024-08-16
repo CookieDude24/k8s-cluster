@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cloudflare-ddns
+  namespace: cert-manager
+spec:
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: cloudflare-ddns
+              image: mirioeggmann/cloudflare-ddns:v0.5.1
+              env:
+                - name: ZONE_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: cloudflare-api-key
+                      key: zone-id
+                - name: RECORD_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: cloudflare-api-key
+                      key: record-id
+                - name: API_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: cloudflare-api-key
+                      key: api-key
+                - name: NAME
+                  value: "home.007337.xyz"
+                - name: PROXIED
+                  value: "false"
+          restartPolicy: OnFailure
