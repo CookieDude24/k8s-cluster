@@ -1,0 +1,7 @@
+- hosts: docker
+  become: yes
+  tasks:
+    - name: Restart services
+      community.docker.docker_compose_v2:
+        project_src: /home/docker/
+        state: restarted
