@@ -2,16 +2,16 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: radarr
-  namespace: argo-cd
+  namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: arr
+    namespace: media
     server: {{ .Values.spec.destination.server }}
   project: default
   source:
-    path: radarr
+    path: kubernetes/apps/media/radarr
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}
     helm:
