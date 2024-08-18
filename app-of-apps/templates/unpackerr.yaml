@@ -7,11 +7,11 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: arr
+    namespace: media
     server: {{ .Values.spec.destination.server }}
   project: default
   source:
-    path: kubernetes/media/unpackerr
+    path: kubernetes/apps/media/unpackerr
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}
     helm:

@@ -19,6 +19,8 @@ spec:
   dnsNames:
     - "007337.xyz"
     - "*.007337.xyz"
+    - "*.kube.007337.xyz"
+    - "*.media.007337.xyz"
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
