@@ -1,0 +1,24 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: TLSStore
+metadata:
+  name: default
+  namespace: kube-system
+spec:
+  certificates:
+    - secretName: kube-007337-xyz-tls-prod
+  defaultCertificate:
+    secretName: kube-007337-xyz-tls-prod
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kube-007337-xyz-tls-prod
+  namespace: kube-system
+spec:
+  secretName: kube-007337-xyz-tls-prod
+  dnsNames:
+    - "007337.xyz"
+    - "*.007337.xyz"
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
