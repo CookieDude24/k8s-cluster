@@ -1,0 +1,57 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  # Argo CD's externally facing base URL (optional). Required when configuring SSO
+  url: https://kube.007337.xyz/argocd
+
+  # A dex connector configuration (optional). See SSO configuration documentation:
+  # https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/user-management/index.md#sso
+  # https://dexidp.io/docs/connectors/
+  dex.config: |
+    connectors:
+    - config:
+        issuer: https://authentik.home.007337.xyz/application/o/argocd/
+        clientID: lFPsOX98z4KCavpOqXDQmOYRiaPjPp3OmjtujSxq
+        clientSecret: $argocd-authentik-sso-secret:client-secret
+        insecureEnableGroups: true
+        scopes:
+          - openid
+          - profile
+          - email
+      name: authentik
+      type: oidc
+      id: authentik
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-rbac-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  policy.csv: |
+    g, authentik Admins, role:admin
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cmd-params-cm
+  labels:
+    app.kubernetes.io/name: argocd-cmd-params-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  ## Server properties
+  server.insecure: "true"
+  # Value for base href in index.html. Used if Argo CD is running behind reverse proxy under subpath different from / (default "/")
+  server.basehref: "/argocd"
+  # Used if Argo CD is running behind reverse proxy under subpath different from /
+  server.rootpath: "/argocd"
