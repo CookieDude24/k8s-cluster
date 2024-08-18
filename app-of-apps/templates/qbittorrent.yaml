@@ -11,7 +11,7 @@ spec:
     server: {{ .Values.spec.destination.server }}
   project: default
   source:
-    path: qbittorrent
+    path: kubernetes/media/qbittorrent
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}
     helm:

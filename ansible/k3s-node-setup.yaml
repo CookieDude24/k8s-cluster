@@ -9,6 +9,8 @@
           - nfs-utils
           - jq
           - qemu-guest-agent
+          - dnf-utils
+          - cryptsetup
         state: present
 
     - name: start qemu agent
