@@ -1,0 +1,29 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: technitium
+spec:
+  type: ExternalName
+  ports:
+    - port: 80
+      protocol: TCP
+      name: http
+      targetPort: 5380
+  externalName: 192.168.1.100
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: technitium-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  entryPoints:
+    - http
+  routes:
+    - match: Host(`dns1.kube.007337.xyz`)
+      kind: Rule
+      services:
+        - name: technitium
+          port: 80
+          scheme: http

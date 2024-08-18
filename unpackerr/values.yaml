@@ -1,0 +1,33 @@
+controllers:
+  main:
+    containers:
+      main:
+        env:
+          TZ: Etc/UTC
+          UN_SONARR_0_URL: https://media.007337.xyz/sonarr
+          UN_SONARR_0_API_KEY:
+            valueFrom:
+              secretKeyRef:
+                name: arr-api-keys
+                key: sonarr-api-key
+          UN_SONARR_0_PATHS_0: /data/downloads
+          UN_RADARR_0_URL: https://media.007337.xyz/radarr
+          UN_RADARR_0_API_KEY:
+            valueFrom:
+              secretKeyRef:
+                name: arr-api-keys
+                key: radarr-api-key
+          UN_RADARR_0_PATHS_0: /data/downloads
+        image:
+          pullPolicy: Always
+          repository: golift/unpackerr
+          tag: latest
+    strategy: Recreate
+persistence:
+  data:
+    enabled: true
+    path: /pool0/media/
+    server: 192.168.1.91
+    type: nfs
+    globalMounts:
+        - path: /data/downloads

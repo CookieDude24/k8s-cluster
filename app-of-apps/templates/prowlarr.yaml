@@ -1,17 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: uptimekuma
+  name: prowlarr
   namespace: argo-cd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: uptimekuma
+    namespace: arr
     server: {{ .Values.spec.destination.server }}
   project: default
   source:
-    path: uptimekuma
+    path: prowlarr
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}
     helm:

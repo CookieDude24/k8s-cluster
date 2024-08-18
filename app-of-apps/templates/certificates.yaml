@@ -1,22 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: uptimekuma
+  name: certificates
   namespace: argo-cd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: uptimekuma
+    namespace: cert-manager
     server: {{ .Values.spec.destination.server }}
   project: default
   source:
-    path: uptimekuma
+    path: certificates
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}
-    helm:
-      valueFiles:
-        - values.yaml
   syncPolicy:
     automated:
       prune: {{ .Values.spec.automated.prune }}

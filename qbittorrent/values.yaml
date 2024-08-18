@@ -1,0 +1,47 @@
+controllers:
+  main:
+    containers:
+      main:
+        env:
+          TZ: Etc/UTC
+          WEBUI_PORT: 8080
+        image:
+          pullPolicy: Always
+          repository: lscr.io/linuxserver/qbittorrent
+          tag: latest
+    strategy: Recreate
+ingress:
+  main:
+    hosts:
+      - host: qbit.kube.007337.xyz
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: main
+              port: http
+persistence:
+  config:
+    accessMode: ReadWriteMany
+    enabled: true
+    size: 1Gi
+    type: persistentVolumeClaim
+  data:
+    enabled: true
+    path: /pool0/media/
+    server: 192.168.1.91
+    type: nfs
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 8080
+        protocol: HTTP
+      torrenttcp:
+        port: 6881
+        protocol: TCP
+      torrentudp:
+        port: 6881
+        protocol: UDP
+    type: ClusterIP

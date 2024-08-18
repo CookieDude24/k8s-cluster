@@ -30,7 +30,7 @@
         groups: wheel
         append: yes
 
-    - name: Allow the maxid user to run any sudo commands
+    - name: Allow the bob user to run any commands as alice with sudo -u alice
       community.general.sudoers:
         name: maxid-sudo
         state: present
@@ -52,10 +52,10 @@
       failed_when: false
       changed_when: reboot_required.rc != 0
       notify:
-          - Reboot Host
+          - Reboot Almalinux
 
   handlers:
-      - name: Reboot Host
+      - name: Reboot Almalinux
         ansible.builtin.reboot:
             msg: "Reboot initiated by Ansible"
             reboot_timeout: 3600
