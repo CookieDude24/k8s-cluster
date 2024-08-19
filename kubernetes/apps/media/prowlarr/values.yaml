@@ -1,0 +1,63 @@
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: &port 9696
+    type: ClusterIP
+controllers:
+  main:
+    containers:
+      main:
+        env:
+          TZ: Etc/UTC
+        image:
+          pullPolicy: Always
+          repository: lscr.io/linuxserver/prowlarr
+          tag: latest
+        probes:
+          liveness:
+            enabled: true
+            custom: true
+            type: HTTP
+            spec:
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 3
+              httpGet:
+                path: /
+                port: *port
+
+          readiness:
+            enabled: true
+            custom: true
+            type: HTTP
+            spec:
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 3
+              httpGet:
+                path: /
+                port: *port
+
+          startup:
+            enabled: true
+            custom: false
+            type: HTTP
+            spec:
+              initialDelaySeconds: 0
+              timeoutSeconds: 1
+              periodSeconds: 5
+              failureThreshold: 30
+              httpGet:
+                path: /
+                port: *port
+persistence:
+  config:
+    accessMode: ReadWriteOnce
+    globalMounts:
+      - path: /config
+    size: 1Gi
+    type: persistentVolumeClaim
