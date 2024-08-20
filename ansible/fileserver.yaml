@@ -1,0 +1,119 @@
+- hosts: fedora:&fileserver
+  become: yes
+  tasks:
+    - name: install all necessary packages
+      dnf:
+        name:
+          - curl
+          - wget
+          - nfs-utils
+          - qemu-guest-agent
+          - dnf-utils
+          - cockpit
+        state: present
+
+    - name: start qemu agent
+      ansible.builtin.systemd_service:
+        name: qemu-guest-agent
+        state: started
+        enabled: true
+
+    - name: start nfs-server
+      ansible.builtin.systemd_service:
+        name: nfs-server
+        state: started
+        enabled: true
+
+    - name: start rpcbind
+      ansible.builtin.systemd_service:
+        name: rpcbind
+        state: started
+        enabled: true
+
+    - name: start rpc-statd
+      ansible.builtin.systemd_service:
+        name: rpc-statd
+        state: started
+        enabled: true
+
+    - name: start nfs-idmapd
+      ansible.builtin.systemd_service:
+        name: nfs-idmapd
+        state: started
+        enabled: true
+
+    - name: Create a ext4 filesystem on /dev/sdb1 and check disk blocks
+      community.general.filesystem:
+        fstype: ext4
+        dev: /dev/sdb
+
+    - name: Mount sdb
+      mount:
+        path: /var/storage
+        src: /dev/sdb
+        fstype: ext4
+        state: present
+
+    - name: Change file ownership, group and permissions
+      ansible.builtin.file:
+        path: /var/storage
+        owner: nobody
+        group: nobody
+        mode: '0771'
+
+    - name: Create media directory
+      ansible.builtin.file:
+        path: /var/storage/media
+        state: directory
+        mode: '0775'
+
+    - name: Create tv directory
+      ansible.builtin.file:
+        path: /var/storage/media/tv
+        state: directory
+        mode: '0777'
+
+    - name: Create movies directory
+      ansible.builtin.file:
+        path: /var/storage/media/movies
+        state: directory
+        mode: '0777'
+
+    - name: Create downloads directory
+      ansible.builtin.file:
+        path: /var/storage/media/downloads
+        state: directory
+        mode: '0777'
+
+    - name: Create backup directory
+      ansible.builtin.file:
+        path: /var/storage/backup
+        state: directory
+        mode: '0771'
+
+    - name: Create tv directory
+      ansible.builtin.file:
+        path: /var/storage/backup/longhorn
+        state: directory
+        mode: '0777'
+
+    - name: Add omada user
+      user:
+        name: omada
+        state: present
+        create_home: true
+        password: $6$oida$h770.OWnldE5cyRT3mcVO/dm9TwNP2HaxFCAkbred5e590HQyaaaEpVogrbY7s26DrLNZGk02r9SNIoI/4zPI1
+
+    - name: reboot if requiered
+      ansible.builtin.command: needs-restarting -r
+      register: reboot_required
+      failed_when: false
+      changed_when: reboot_required.rc != 0
+      notify:
+        - rebooting
+
+  handlers:
+    - name: rebooting
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by Ansible"
+        reboot_timeout: 3600
