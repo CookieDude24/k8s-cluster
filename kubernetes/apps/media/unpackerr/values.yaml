@@ -19,15 +19,19 @@ controllers:
                 key: radarr-api-key
           UN_RADARR_0_PATHS_0: /data/downloads
         image:
-          pullPolicy: Always
+          pullPolicy: IfNotPresent
           repository: golift/unpackerr
           tag: latest
-    strategy: Recreate
+        probes:
+          liveness:
+            enabled: true
+          readiness:
+            enabled: true
 persistence:
   data:
     enabled: true
-    path: /pool0/media/
-    server: 192.168.1.91
+    path: /var/storage/media/
+    server: nfs.007337.xyz
     type: nfs
     globalMounts:
         - path: /data/downloads

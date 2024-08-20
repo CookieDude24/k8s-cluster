@@ -6,6 +6,7 @@
         name: 
           - iscsi-initiator-utils
           - curl
+          - wget
           - nfs-utils
           - jq
           - qemu-guest-agent

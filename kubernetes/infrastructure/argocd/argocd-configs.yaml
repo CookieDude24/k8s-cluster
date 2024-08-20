@@ -17,7 +17,7 @@ data:
   dex.config: |
     connectors:
     - config:
-        issuer: https://authentik.home.007337.xyz/application/o/argocd/
+        issuer: https://auth.007337.xyz/application/o/argocd/
         clientID: lFPsOX98z4KCavpOqXDQmOYRiaPjPp3OmjtujSxq
         clientSecret: $argocd-authentik-sso-secret:client-secret
         insecureEnableGroups: true
