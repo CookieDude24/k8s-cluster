@@ -5,7 +5,7 @@ metadata:
     namespace: kube-system
 spec:
     forwardAuth:
-        address: "http://ak-outpost-k3s-proxy-outpost.kube-system.svc.cluster.local:9000/outpost.goauthentik.io/auth/traefik"
+        address: "http://ak-outpost-k3s-proxy-outpost.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/traefik"
         trustForwardHeader: true
         authResponseHeaders:
             - X-authentik-username
@@ -27,7 +27,7 @@ metadata:
     namespace: longhorn-system
 spec:
     forwardAuth:
-        address: "http://ak-outpost-k3s-proxy-outpost.kube-system.svc.cluster.local:9000/outpost.goauthentik.io/auth/traefik"
+        address: "http://ak-outpost-k3s-proxy-outpost.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/traefik"
         trustForwardHeader: true
         authResponseHeaders:
             - X-authentik-username
@@ -49,7 +49,7 @@ metadata:
     namespace: media
 spec:
     forwardAuth:
-        address: "http://ak-outpost-k3s-proxy-outpost.kube-system.svc.cluster.local:9000/outpost.goauthentik.io/auth/traefik"
+        address: "http://ak-outpost-k3s-proxy-outpost.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/traefik"
         trustForwardHeader: true
         authResponseHeaders:
             - X-authentik-username
