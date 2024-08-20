@@ -7,16 +7,43 @@ service:
     type: ClusterIP
 controllers:
   main:
+    type: statefulset
+
+    statefulset:
+      volumeClaimTemplates:
+        - name: config
+          globalMounts:
+            - path: /config
+          storageClass: longhorn
+          accessMode: ReadWriteOnce
+          size: 1Gi
+
+    pod:
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: &group 1001
+        fsGroup: *group
+        fsGroupChangePolicy: "OnRootMismatch"
+
     containers:
       main:
         env:
           TZ: Etc/UTC
+          SONARR__AUTHENTICATION_REQUIRED: DisabledForLocalAddresses
+          SONARR__AUTHENTICATION_METHOD: External
+          SONARR__API_KEY:
+            valueFrom:
+              secretKeyRef:
+                name: arr-api-keys
+                key: sonarr-api-key
+
         image:
-          pullPolicy: Always
-          repository: lscr.io/linuxserver/sonarr
-          tag: latest
+          pullPolicy: IfNotPresent
+          repository: ghcr.io/onedr0p/sonarr
+          tag: 4.0.4
+
         probes:
-          liveness:
+          liveness: &probe
             enabled: true
             custom: true
             type: HTTP
@@ -26,25 +53,14 @@ controllers:
               timeoutSeconds: 1
               failureThreshold: 3
               httpGet:
-                path: /
+                path: &path /ping
                 port: *port
 
-          readiness:
-            enabled: true
-            custom: true
-            type: HTTP
-            spec:
-              initialDelaySeconds: 0
-              periodSeconds: 10
-              timeoutSeconds: 1
-              failureThreshold: 3
-              httpGet:
-                path: /
-                port: *port
+          readiness: *probe
 
           startup:
             enabled: true
-            custom: false
+            custom: true
             type: HTTP
             spec:
               initialDelaySeconds: 0
@@ -52,19 +68,13 @@ controllers:
               periodSeconds: 5
               failureThreshold: 30
               httpGet:
-                path: /
+                path: *path
                 port: *port
-    strategy: Recreate
+
 persistence:
-  config:
-    accessMode: ReadWriteOnce
-    globalMounts:
-      - path: /config
-    size: 1Gi
-    type: persistentVolumeClaim
   data:
     enabled: true
-    path: /pool0/media/
-    server: nfs.home.007337.xyz
+    path: /var/storage/media/
+    server: nfs.007337.xyz
     type: nfs
 
