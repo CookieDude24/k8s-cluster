@@ -7,63 +7,73 @@ service:
     type: ClusterIP
 controllers:
   main:
+    type: statefulset
+
+    statefulset:
+      volumeClaimTemplates:
+        - name: config
+          globalMounts:
+            - path: /config
+          storageClass: longhorn
+          accessMode: ReadWriteOnce
+          size: 1Gi
+
+    pod:
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: &group 1001
+        fsGroup: *group
+        fsGroupChangePolicy: "OnRootMismatch"
+
     containers:
       main:
         env:
           TZ: Etc/UTC
+          RADARR__AUTHENTICATION_REQUIRED: DisabledForLocalAddresses
+          RADARR__AUTHENTICATION_METHOD: External
+          RADARR__API_KEY:
+            valueFrom:
+              secretKeyRef:
+                name: arr-api-keys
+                key: radarr-api-key
+
         image:
-          pullPolicy: Always
-          repository: lscr.io/linuxserver/radarr
-          tag: latest
-          probes:
-            liveness:
-              enabled: true
-              custom: true
-              type: HTTP
-              spec:
-                initialDelaySeconds: 0
-                periodSeconds: 10
-                timeoutSeconds: 1
-                failureThreshold: 3
-                httpGet:
-                  path: /
-                  port: *port
+          pullPolicy: IfNotPresent
+          repository: ghcr.io/onedr0p/radarr
+          tag: 5.6.0.8846
 
-            readiness:
-              enabled: true
-              custom: true
-              type: HTTP
-              spec:
-                initialDelaySeconds: 0
-                periodSeconds: 10
-                timeoutSeconds: 1
-                failureThreshold: 3
-                httpGet:
-                  path: /
-                  port: *port
+        probes:
+          liveness: &probe
+            enabled: true
+            custom: true
+            type: HTTP
+            spec:
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 3
+              httpGet:
+                path: &path /ping
+                port: *port
 
-            startup:
-              enabled: true
-              custom: false
-              type: HTTP
-              spec:
-                initialDelaySeconds: 0
-                timeoutSeconds: 1
-                periodSeconds: 5
-                failureThreshold: 30
-                httpGet:
-                  path: /
-                  port: *port
+          readiness: *probe
+
+          startup:
+            enabled: true
+            custom: true
+            type: HTTP
+            spec:
+              initialDelaySeconds: 0
+              timeoutSeconds: 1
+              periodSeconds: 5
+              failureThreshold: 30
+              httpGet:
+                path: *path
+                port: *port
 persistence:
-  config:
-    accessMode: ReadWriteOnce
-    globalMounts:
-      - path: /config
-    size: 1Gi
-    type: persistentVolumeClaim
   data:
     enabled: true
-    path: /pool0/media/
-    server: nfs.home.007337.xyz
+    path: /var/storage/media/
+    server: nfs.007337.xyz
     type: nfs
 
