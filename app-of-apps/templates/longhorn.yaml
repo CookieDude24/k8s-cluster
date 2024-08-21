@@ -16,7 +16,7 @@ spec:
         values: |
           defaultSettings:
             defaultDataPath: /var/longhorn/
-            backupTarget: nfs://pve1.home.007337.xyz:/pool0/longhorn/backup
+            backupTarget: nfs://nfs.home.007337.xyz:/var/storage/backup/longhorn/
           preUpgradeChecker:
             jobEnabled: false
   destination:
