@@ -12,6 +12,21 @@ controllers:
       main:
         env:
           TZ: Europe/Vienna
+          OIDC_AUTH_ENABLED: true
+          OIDC_SIGNUP_ENABLED: true
+          OIDC_USER_GROUP: Users
+          OIDC_ADMIN_GROUP: Admins
+          OIDC_CONFIGURATION_URL: https://auth.007337.xyz/application/o/mealie/.well-known/openid-configuration
+          OIDC_CLIENT_ID:
+            valueFrom:
+              secretKeyRef:
+                name: mealie-authentik-sso-secret
+                key: client-id
+          OIDC_REMEMBER_ME: true
+          OIDC_SIGNING_ALGORITHM: ES256
+          OIDC_PROVIDER_NAME: Authentik
+          OIDC_AUTO_REDIRECT: true
+          OIDC_GROUPS_CLAIM: groups
           BASE_URL: https://mealie.007337.xyz/
           MAX_WORKERS: 1
           WEB_CONCURRENCY: 1
