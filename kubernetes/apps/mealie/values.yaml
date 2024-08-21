@@ -1,0 +1,57 @@
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: &port 9000
+    type: ClusterIP
+controllers:
+  main:
+    strategy: Recreate
+    containers:
+      main:
+        env:
+          TZ: Europe/Vienna
+          BASE_URL: https://mealie.007337.xyz/
+          MAX_WORKERS: 1
+          WEB_CONCURRENCY: 1
+        image:
+          pullPolicy: IfNotPresent
+          repository: ghcr.io/mealie-recipes/mealie
+          tag: v1.7.0
+        probes:
+          probes:
+            liveness: &probe
+              enabled: true
+              custom: true
+              type: HTTP
+              spec:
+                initialDelaySeconds: 0
+                periodSeconds: 10
+                timeoutSeconds: 1
+                failureThreshold: 3
+                httpGet:
+                  path: &path /
+                  port: *port
+
+            readiness: *probe
+
+            startup:
+              enabled: true
+              custom: true
+              type: HTTP
+              spec:
+                initialDelaySeconds: 0
+                timeoutSeconds: 1
+                periodSeconds: 5
+                failureThreshold: 30
+                httpGet:
+                  path: *path
+                  port: *port
+persistence:
+  data:
+    globalMounts:
+      - path: /app/data
+    storageClass: longhorn
+    accessMode: ReadWriteOnce
+    size: 1Gi
