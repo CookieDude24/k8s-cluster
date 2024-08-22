@@ -22,3 +22,29 @@ spec:
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: TLSStore
+metadata:
+  name: default
+  namespace: media
+spec:
+  certificates:
+    - secretName: media-007337-xyz-tls-prod
+  defaultCertificate:
+    secretName: media-007337-xyz-tls-prod
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: media-007337-xyz-tls-prod
+  namespace: media
+spec:
+  secretName: media-007337-xyz-tls-prod
+  dnsNames:
+    - "media.007337.xyz"
+    - "*.media.007337.xyz"
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
