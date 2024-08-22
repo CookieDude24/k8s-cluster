@@ -9,17 +9,29 @@ spec:
     - web
   routes:
     - kind: Rule
-      match: Host(`longhorn.kube.007337.xyz`)
+      match: Host(`kube.007337.xyz`) && PathPrefix(`/longhorn`)"
       middlewares:
         - name: authentik
+          namespace: longhorn-system
+        - name: rewrite-longhorn-dashboard
           namespace: longhorn-system
       services:
         - name: longhorn-frontend
           port: 80
     - kind: Rule
-      match: Host(`longhorn.kube.007337.xyz`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      match: Host(`kube.007337.xyz`) && PathPrefix(`/longhorn/outpost.goauthentik.io/`)"
       priority: 15
       services:
         - kind: Service
           name: ak-outpost-k3s-proxy-outpost
           port: 9000
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: rewrite-longhorn-dashboard
+  namespace: longhorn-system
+spec:
+  replacePathRegex:
+    regex: ^/longhorn(/|$)(.*)
+    replacement: /$2
