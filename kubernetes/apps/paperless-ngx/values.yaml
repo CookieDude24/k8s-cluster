@@ -1,0 +1,82 @@
+defaultPodOptions:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: &group 1000
+    fsGroup: *group
+    fsGroupChangePolicy: "OnRootMismatch"
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 8000
+controllers:
+  main:
+    strategy: Recreate
+    containers:
+      main:
+        order: 2
+        image:
+          repository: ghcr.io/paperless-ngx/paperless-ngx
+          tag: 2.8.6
+        env:
+          PAPERLESS_URL: https://home.007337.xyz
+          PAPERLESS_PORT: 8000
+          PAPERLESS_CONSUMER_POLLING: 60
+          PAPERLESS_CONSUMER_RECURSIVE: "true"
+          PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
+          PAPERLESS_DATA_DIR: /library/data
+          PAPERLESS_EXPORT_DIR: /data/fileserver/export
+          PAPERLESS_OCR_LANGUAGE: deu+eng
+          PAPERLESS_REDIS: redis://localhost:6379
+          PAPERLESS_TASK_WORKERS: 2
+          PAPERLESS_DBENGINE: postgresql
+          PAPERLESS_DBHOST: localhost
+
+        envFrom:
+          - secretRef:
+              name: paperless-secret
+        resources:
+          requests:
+            memory: 1Gi
+            cpu: 100m
+          limits:
+            memory: 4Gi
+
+      postgres:
+        image:
+          repository: docker.io/library/postgres
+          tag: 16
+
+        env:
+          PGDATA: /var/lib/postgresql/data/pgdata
+        envFrom:
+          - secretRef:
+              name: paperless-secret
+
+        ports:
+          - containerPort: 5432
+
+      redis:
+        order: 1
+        image:
+          repository: public.ecr.aws/docker/library/redis
+          tag: 7.2.5
+        ports:
+          - containerPort: 6379
+        env:
+          REDIS_REPLICATION_MODE: master
+        command: [ "redis-server" ]
+
+
+persistence:
+  library:
+    enabled: true
+    existingClaim: paperless-library
+    globalMounts:
+      - path: /library
+  pg-data:
+    enabled: true
+    existingClaim: paperless-pg-data
+    globalMounts:
+      - path: /var/lib/postgresql
