@@ -21,6 +21,8 @@ controllers:
           tag: 2.8.6
         env:
           PAPERLESS_URL: https://home.007337.xyz
+          PAPERLESS_STATIC_URL: /paperless/
+          PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
           PAPERLESS_PORT: 8000
           PAPERLESS_CONSUMER_POLLING: 60
           PAPERLESS_CONSUMER_RECURSIVE: "true"
@@ -124,3 +126,10 @@ persistence:
     type: nfs
     globalMounts:
       - path: /data/fileserver/consume
+  nas-export:
+    enabled: true
+    path: /var/storage/paperless/export
+    server: nfs.007337.xyz
+    type: nfs
+    globalMounts:
+      - path: /data/fileserver/export
