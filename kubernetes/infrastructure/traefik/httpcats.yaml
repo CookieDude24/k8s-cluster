@@ -29,6 +29,8 @@ metadata:
 spec:
   externalName: digitalocean.007337.xyz
   type: ExternalName
+  ports:
+    - port: 81
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
@@ -51,3 +53,10 @@ spec:
           port: 81
     - kind: Rule
       match: HostRegexp(`{host:.+}`)
+      priority: 1
+      middlewares:
+        - name: httpcats-catch-all-redirect
+          namespace: kube-system
+      services:
+        - name: httpcats
+          port: 81
