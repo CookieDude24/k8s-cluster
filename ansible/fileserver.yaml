@@ -91,9 +91,21 @@
         state: directory
         mode: '0771'
 
-    - name: Create tv directory
+    - name: Create longhorn backup directory
       ansible.builtin.file:
         path: /var/storage/backup/longhorn
+        state: directory
+        mode: '0777'
+
+    - name: Create paperless consume directory
+      ansible.builtin.file:
+        path: /var/storage/paperless/consume
+        state: directory
+        mode: '0777'
+
+    - name: Create paperless export directory
+      ansible.builtin.file:
+        path: /var/storage/paperless/export
         state: directory
         mode: '0777'
 
