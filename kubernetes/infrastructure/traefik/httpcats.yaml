@@ -1,0 +1,53 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: httpcats
+  namespace: kube-system
+spec:
+  errors:
+    status:
+      - "400-599"
+    query: /{status}.jpg
+    service:
+      name: httpcats
+      port: 81
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: httpcats-catch-all-redirect
+  namespace: kube-system
+spec:
+  replacePath:
+    path: /404.jpg
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpcats
+  namespace: kube-system
+spec:
+  externalName: digitalocean.007337.xyz
+  type: ExternalName
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: catch-all-ingress
+  namespace: kube-system
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - kind: Rule
+      match: HostRegexp(`{host:.+}`)
+      priority: 2
+      middlewares:
+        - name: httpcats
+          namespace: kube-system
+      services:
+        - name: httpcats
+          port: 81
+    - kind: Rule
+      match: HostRegexp(`{host:.+}`)
