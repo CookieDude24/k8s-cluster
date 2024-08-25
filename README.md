@@ -1,4 +1,8 @@
-# k8s-homelab
+# k8s-cluster
+
+![image](https://github.com/user-attachments/assets/ea679c53-87fa-43dd-aba2-a557611c833b)
+![image](https://github.com/user-attachments/assets/21cc3e10-89cf-4f88-9a53-a4c5f408b915)
+![image](https://github.com/user-attachments/assets/b3147ba5-d71a-49a8-bce6-d386ca3d1d52)
 
 ## why?
 
@@ -17,9 +21,13 @@ Prior to running a K8s cluster I ran every service with docker-compose. Docker-c
 ## how to install
    
 ### setup vms
+0. install kubectl, opentofu, ansible, kubeseal on youre workstation.
 1. execute the terraform file
-2. execute ansible/dnf-update.yaml
-3. execute ansible/k3s-node-setup.yaml
+   1. modify values of variables in vars.tf
+   1. `tofu plan -out`
+   2. `tofu apply plan`
+3. execute ansible/dnf-update.yaml
+4. execute ansible/k3s-node-setup.yaml
 
 ### bootstrap cluster with k3sup
 
