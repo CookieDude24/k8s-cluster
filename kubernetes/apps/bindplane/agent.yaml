@@ -1,0 +1,196 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/name: bindplane-agent
+  name: bindplane-agent
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/name: bindplane-agent
+  name: bindplane-agent
+  namespace: bindplane-agent
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: bindplane-agent
+  labels:
+    app.kubernetes.io/name: bindplane-agent
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - events
+      - namespaces
+      - namespaces/status
+      - nodes
+      - nodes/spec
+      - nodes/stats
+      - nodes/proxy
+      - pods
+      - pods/status
+      - replicationcontrollers
+      - replicationcontrollers/status
+      - resourcequotas
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - daemonsets
+      - deployments
+      - replicasets
+      - statefulsets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - extensions
+    resources:
+      - daemonsets
+      - deployments
+      - replicasets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - batch
+    resources:
+      - jobs
+      - cronjobs
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - autoscaling
+    resources:
+      - horizontalpodautoscalers
+    verbs:
+      - get
+      - list
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bindplane-agent
+  labels:
+    app.kubernetes.io/name: bindplane-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: bindplane-agent
+subjects:
+  - kind: ServiceAccount
+    name: bindplane-agent
+    namespace: bindplane-agent
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bindplane-cluster-agent
+  labels:
+    app.kubernetes.io/name: bindplane-agent
+    app.kubernetes.io/component: cluster
+  namespace: bindplane-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bindplane-agent
+      app.kubernetes.io/component: cluster
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bindplane-agent
+        app.kubernetes.io/component: cluster
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8888"
+        prometheus.io/scheme: http
+        prometheus.io/job-name: bindplane-cluster-agent
+    spec:
+      serviceAccount: bindplane-agent
+      initContainers:
+        - name: setup-volumes
+          image: ghcr.io/observiq/observiq-otel-collector:1.56.0
+          securityContext:
+            # Required for changing permissions from
+            # root to otel user in emptyDir volume.
+            runAsUser: 0
+          command:
+            - "chown"
+            - "otel:"
+            - "/etc/otel/config"
+          volumeMounts:
+            - mountPath: /etc/otel/config
+              name: config
+        - name: copy-configs
+          image: ghcr.io/observiq/observiq-otel-collector:1.56.0
+          command:
+            - 'sh'
+            - '-c'
+            - 'cp config.yaml config/ && cp logging.yaml config/ && chown -R otel:otel config/'
+          volumeMounts:
+            - mountPath: /etc/otel/config
+              name: config
+      containers:
+        - name: opentelemetry-container
+          image: ghcr.io/observiq/observiq-otel-collector:1.56.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: true
+          ports:
+            - containerPort: 8888
+              name: prometheus
+          resources:
+            requests:
+              memory: 200Mi
+              cpu: 100m
+            limits:
+              memory: 200Mi
+          env:
+            - name: OPAMP_ENDPOINT
+              value: wss://app.bindplane.com/v1/opamp
+            - name: OPAMP_SECRET_KEY
+              value: 01J4ECNCBPNGEC7GWHXXT6K1FG
+            - name: OPAMP_AGENT_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPAMP_LABELS
+              value: configuration=K8sCluster,container-platform=kubernetes-deployment,install_id=27a94008-2238-43f6-8714-7ee71e7f430b
+            - name: KUBE_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            # The collector process updates config.yaml
+            # and manager.yaml when receiving changes
+            # from the OpAMP server.
+            - name: CONFIG_YAML_PATH
+              value: /etc/otel/config/config.yaml
+            - name: MANAGER_YAML_PATH
+              value: /etc/otel/config/manager.yaml
+            - name: LOGGING_YAML_PATH
+              value: /etc/otel/config/logging.yaml
+          volumeMounts:
+            - mountPath: /etc/otel/config
+              name: config
+            - mountPath: /etc/otel/storage
+              name: storage
+      volumes:
+        - name: config
+          emptyDir: {}
+        - name: storage
+          emptyDir: {}
