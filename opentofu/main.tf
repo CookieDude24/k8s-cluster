@@ -39,13 +39,12 @@ resource "proxmox_vm_qemu" "k3s-node" {
   cores = 4
   sockets = 1
   cpu = "host"
-  memory = 6144
+  memory = 7144
   scsihw = "virtio-scsi-pci"
   bios = "ovmf"
   onboot = true
   machine = "q35"
   qemu_os = "l26"
-  searchdomain = "home.007337.xyz"
 
   ciuser = "ansible"
   cloudinit_cdrom_storage = var.storage
@@ -53,7 +52,8 @@ resource "proxmox_vm_qemu" "k3s-node" {
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDgq7HJ804vAIZASgucY+3sImXqgwCOo4/126vTnrf2+WFtjx3MOosIDfIJDFKkChN7BlUxfj47JAXeoToTAam9pDcGpiO4e4Sd3gu7SPYKsA9AfGmZGSHDm4DTwVws/qwUyBg41UWX8bAIqRt5+6vkMXA9sdpLwh7pCBMv3m73mGEx7rYriYcmJzbw+52NMKv7il7hnrksLSVcJEz2PS0rstKHLRD8xRZuK25Ox0ZTTj4D8+Oon8EA6uYQmN3adK0I2BJMisvuJxRfIhvW4tEMfz7z+Pqls8peluCdOtoZSVkKTS5zvNLyMnn8SAxkRCMUF/pb6xkF1Q5yX+IWvwD4LSv7gm+uGL6iM72cVBZ5ZgqHtZBZ82alfymIFG+Cg+mVmgaG2ggymTa8geJPrnzviHdmQDxLvf04ifDf54xBa61+/EVC69SN4Z4/iNXbU6NsloJOBDePuWcLKC/wtmUtpWbgIDD+iMOdGJhxw0Lh6zxbk/ZDJuBrGUcIWgGWRtc= root@ansibleSemaphore
 EOF
   ipconfig0 = "ip=192.168.1.13${count.index}/24,gw=192.168.1.1,"
-  nameserver = "192.168.1.100"
+
+
 
   disks {
     scsi {
@@ -79,11 +79,6 @@ EOF
     bridge = var.nic_name
     firewall = false
   }
-
-  network {
-    model = "virtio"
-    bridge = var.nic_name
-  }
 }
 resource "proxmox_vm_qemu" "fileserver" {
   name = "fileserver"
@@ -108,7 +103,6 @@ resource "proxmox_vm_qemu" "fileserver" {
   onboot = true
   machine = "q35"
   qemu_os = "l26"
-  searchdomain = "home.007337.xyz"
 
   ciuser = "ansible"
   cloudinit_cdrom_storage = var.fileserver-storage
@@ -116,7 +110,7 @@ resource "proxmox_vm_qemu" "fileserver" {
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDgq7HJ804vAIZASgucY+3sImXqgwCOo4/126vTnrf2+WFtjx3MOosIDfIJDFKkChN7BlUxfj47JAXeoToTAam9pDcGpiO4e4Sd3gu7SPYKsA9AfGmZGSHDm4DTwVws/qwUyBg41UWX8bAIqRt5+6vkMXA9sdpLwh7pCBMv3m73mGEx7rYriYcmJzbw+52NMKv7il7hnrksLSVcJEz2PS0rstKHLRD8xRZuK25Ox0ZTTj4D8+Oon8EA6uYQmN3adK0I2BJMisvuJxRfIhvW4tEMfz7z+Pqls8peluCdOtoZSVkKTS5zvNLyMnn8SAxkRCMUF/pb6xkF1Q5yX+IWvwD4LSv7gm+uGL6iM72cVBZ5ZgqHtZBZ82alfymIFG+Cg+mVmgaG2ggymTa8geJPrnzviHdmQDxLvf04ifDf54xBa61+/EVC69SN4Z4/iNXbU6NsloJOBDePuWcLKC/wtmUtpWbgIDD+iMOdGJhxw0Lh6zxbk/ZDJuBrGUcIWgGWRtc= root@ansibleSemaphore
 EOF
   ipconfig0 = "ip=192.168.1.89/24,gw=192.168.1.1,"
-  nameserver = "192.168.1.100"
+
 
   disks {
     scsi {
@@ -130,6 +124,56 @@ EOF
       scsi1 {
         disk {
           size       = 1024
+          storage = var.fileserver-storage # Name of storage local to the host you are spinning the VM up on
+          emulatessd = true
+        }
+      }
+    }
+  }
+
+  network {
+    model = "virtio"
+    bridge = var.nic_name
+    firewall = false
+  }
+}
+resource "proxmox_vm_qemu" "workstation" {
+  name = "workstation"
+  target_node = "${var.proxmox_host}1"
+  vmid = 400
+
+  # References our vars.tf file to plug in our template name
+  clone = var.template_name
+  # Creates a full clone, rather than linked clone
+  # https://pve.proxmox.com/wiki/VM_Templates_and_Clones
+  full_clone  = "true"
+
+  # VM Settings. `agent = 1` enables qemu-guest-agent
+  agent = 1
+  os_type = "cloud-init"
+  cores = 2
+  sockets = 1
+  cpu = "host"
+  memory = 2000
+  scsihw = "virtio-scsi-pci"
+  bios = "ovmf"
+  onboot = true
+  machine = "q35"
+  qemu_os = "l26"
+
+  ciuser = "ansible"
+  cloudinit_cdrom_storage = var.fileserver-storage
+  sshkeys = <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDgq7HJ804vAIZASgucY+3sImXqgwCOo4/126vTnrf2+WFtjx3MOosIDfIJDFKkChN7BlUxfj47JAXeoToTAam9pDcGpiO4e4Sd3gu7SPYKsA9AfGmZGSHDm4DTwVws/qwUyBg41UWX8bAIqRt5+6vkMXA9sdpLwh7pCBMv3m73mGEx7rYriYcmJzbw+52NMKv7il7hnrksLSVcJEz2PS0rstKHLRD8xRZuK25Ox0ZTTj4D8+Oon8EA6uYQmN3adK0I2BJMisvuJxRfIhvW4tEMfz7z+Pqls8peluCdOtoZSVkKTS5zvNLyMnn8SAxkRCMUF/pb6xkF1Q5yX+IWvwD4LSv7gm+uGL6iM72cVBZ5ZgqHtZBZ82alfymIFG+Cg+mVmgaG2ggymTa8geJPrnzviHdmQDxLvf04ifDf54xBa61+/EVC69SN4Z4/iNXbU6NsloJOBDePuWcLKC/wtmUtpWbgIDD+iMOdGJhxw0Lh6zxbk/ZDJuBrGUcIWgGWRtc= root@ansibleSemaphore
+EOF
+  ipconfig0 = "ip=192.168.1.110/24,gw=192.168.1.1,"
+
+
+  disks {
+    scsi {
+      scsi0 {
+        disk {
+          size    = 32
           storage = var.fileserver-storage # Name of storage local to the host you are spinning the VM up on
           emulatessd = true
         }
