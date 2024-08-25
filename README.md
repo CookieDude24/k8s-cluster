@@ -1,11 +1,33 @@
-# k8s-homelab
+# k8s-cluster
+
+![image](https://github.com/user-attachments/assets/ea679c53-87fa-43dd-aba2-a557611c833b)
+![image](https://github.com/user-attachments/assets/21cc3e10-89cf-4f88-9a53-a4c5f408b915)
+![image](https://github.com/user-attachments/assets/b3147ba5-d71a-49a8-bce6-d386ca3d1d52)
+
+## why?
+
+### motivation of switching to K8s
+Prior to running a K8s cluster I ran every service with docker-compose. Docker-compose had many issues when I used it, especially containers stopping but not starting again and secrets being stored in unencrypted files. Managing around 10 LXCs in proxmox which are all running docker-compose and some service is quite time-consuming and a lot of manual work. If I lost my backups I would have to manually install and configure everything AGAIN so the declarative nature of k8s is just great.
+
+### the main benefits of my K8s cluster in conjunction with OpenTofu and Ansible
+
+1. Backing up my cluster is way easier than my docker-compose LXC system ever was since it's just 4 VMs (3 Nodes and 1 Fileshare).
+2. Updating is easier too, because I basically only have to update 2 different systems, because 3 VMs are identical.
+3. My cluster is also more stable because I am able to reboot VMs without any services going down.
+4. K8s supports secrets, which docker-compose doesn't. Having **all my secrets stored in unencrypted .env files** on docker-compose VMs never felt right to me.
+5. K8s is also entirely declaratively configurable. So even if I lose my Backups, I don't have to configure anything manually ever **AGAIN**.
+6. I just like playing with k8s.
 
 ## how to install
    
 ### setup vms
+0. install kubectl, opentofu, ansible, kubeseal on youre workstation.
 1. execute the terraform file
-2. execute ansible/dnf-update.yaml
-3. execute ansible/k3s-node-setup.yaml
+   1. modify values of variables in vars.tf
+   1. `tofu plan -out`
+   2. `tofu apply plan`
+3. execute ansible/dnf-update.yaml
+4. execute ansible/k3s-node-setup.yaml
 
 ### bootstrap cluster with k3sup
 
