@@ -15,7 +15,6 @@ spec:
             apiTokenSecretRef:
               key: api-key
               name: cloudflare-api-key
-            email: "maxidorninger@gmail.com"
         selector:
           dnsZones: ["007337.xyz"]
 ---
@@ -35,6 +34,5 @@ spec:
             apiTokenSecretRef:
               key: api-key
               name: cloudflare-api-key
-            email: "maxidorninger@gmail.com"
         selector:
           dnsZones: ["007337.xyz"]
