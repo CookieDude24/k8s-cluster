@@ -1,15 +1,28 @@
 - hosts: fedora:&fileserver
   become: yes
   tasks:
-    - name: install all necessary packages
+    - name: install essential necessary packages
       dnf:
         name:
           - curl
           - wget
-          - nfs-utils
           - qemu-guest-agent
           - dnf-utils
-          - cockpit
+        state: present
+
+    - name: install all necessary packages for nfs
+      dnf:
+        name:
+          - nfs-utils
+        state: present
+
+    - name: install all necessary packages for smb
+      dnf:
+        name:
+          - samba
+          - samba-client
+          - samba-common
+          - cifs-utils
         state: present
 
     - name: start qemu agent
@@ -61,6 +74,13 @@
         group: nobody
         mode: '0771'
 
+    - name: Add media user
+      user:
+        name: media
+        uid: 1100
+        shell: /usr/sbin/nologin
+        state: present
+
     - name: Create media directory
       ansible.builtin.file:
         path: /var/storage/media
@@ -109,6 +129,14 @@
         state: directory
         mode: '0777'
 
+    - name: Create proxmox directory
+      ansible.builtin.file:
+        path: /var/storage/proxmox
+        state: directory
+        owner: root
+        group: root
+        mode: '0777'
+
     - name: Add omada user
       user:
         name: omada
@@ -122,10 +150,15 @@
       failed_when: false
       changed_when: reboot_required.rc != 0
       notify:
-        - rebooting
+        - reboot
 
   handlers:
-    - name: rebooting
+    - name: reboot
       ansible.builtin.reboot:
         msg: "Reboot initiated by Ansible"
         reboot_timeout: 3600
+
+    - name: restart samba
+      service:
+        name: smb.service
+        state: restarted

@@ -1,6 +1,17 @@
 - hosts: almalinux:fedora
   become: yes
   tasks:
+
+    - name: set dns servers
+      ansible.builtin.command:
+        argv:
+          - resolvectl
+          - dns
+          - eth0
+          - 192.168.1.1
+          - 9.9.9.9
+      when: inventory_hostname in groups["fedora"]
+
     - name: ensure Basic tools are installed
       dnf:
         name: 
@@ -46,8 +57,8 @@
         path: /home/maxid/.ssh/authorized_keys
 
 
-    - name: reboot if requiered
-      ansible.builtin.command: needs-restarting -r
+    - name: reboot if required
+      ansible.builtin.command: dnf needs-restarting -r
       register: reboot_required
       failed_when: false
       changed_when: reboot_required.rc != 0
