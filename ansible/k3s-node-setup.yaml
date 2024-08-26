@@ -1,4 +1,4 @@
-- hosts: fedora:&k3s
+- hosts: k3s:workstation
   become: yes
   tasks:
     - name: install all necessary packages
@@ -12,6 +12,9 @@
           - qemu-guest-agent
           - dnf-utils
           - cryptsetup
+          - kubernetes-client
+          - helm
+          - git
         state: present
 
     - name: start qemu agent
@@ -20,19 +23,35 @@
         state: started
         enabled: true
 
-    - name: Create a ext4 filesystem on /dev/sdb1 and check disk blocks
+    - name: Create sdb mountpoint
+      ansible.builtin.file:
+        path: /mnt/sdb
+        state: directory
+      when: inventory_hostname in groups["k3s"]
+
+    - name: Create a ext4 filesystem on /dev/sdb and check disk blocks
       community.general.filesystem:
         fstype: ext4
         dev: /dev/sdb
+      when: inventory_hostname in groups["k3s"]
 
     - name: Mount sdb
       mount:
-        path: /var/longhorn
+        path: /mnt/sdb
         src: /dev/sdb
         fstype: ext4
         state: present
+      when: inventory_hostname in groups["k3s"]
 
-    - name: reboot if requiered
+    - name: Add media user
+      user:
+        name: media
+        uid: 1100
+        shell: /usr/sbin/nologin
+        state: present
+      when: inventory_hostname in groups["k3s"]
+
+    - name: reboot if required
       ansible.builtin.command: needs-restarting -r
       register: reboot_required
       failed_when: false

@@ -31,6 +31,12 @@
         state: started
         enabled: true
 
+    - name: start smb-server
+      ansible.builtin.systemd_service:
+        name: smb
+        state: started
+        enabled: true
+
     - name: start nfs-server
       ansible.builtin.systemd_service:
         name: nfs-server
@@ -85,19 +91,25 @@
       ansible.builtin.file:
         path: /var/storage/media
         state: directory
-        mode: '0775'
+        owner: media
+        group: media
+        mode: '0776'
 
     - name: Create tv directory
       ansible.builtin.file:
         path: /var/storage/media/tv
         state: directory
-        mode: '0777'
+        owner: media
+        group: media
+        mode: '0770'
 
     - name: Create movies directory
       ansible.builtin.file:
         path: /var/storage/media/movies
         state: directory
-        mode: '0777'
+        owner: media
+        group: media
+        mode: '0770'
 
     - name: Create downloads directory
       ansible.builtin.file:
