@@ -26,21 +26,11 @@ service:
         targetPort: *bt-port
 controllers:
   main:
-    type: statefulset
-
-    statefulset:
-      volumeClaimTemplates:
-        - name: config
-          globalMounts:
-            - path: /config
-          storageClass: longhorn
-          accessMode: ReadWriteOnce
-          size: 1Gi
-
+    strategy: RollingUpdate
     pod:
       securityContext:
-        runAsUser: 1001
-        runAsGroup: &group 1001
+        runAsUser: 1100
+        runAsGroup: &group 1100
         fsGroup: *group
         fsGroupChangePolicy: "OnRootMismatch"
 
@@ -107,6 +97,12 @@ persistence:
   data:
     enabled: true
     path: /var/storage/media/
+    server: nfs.007337.xyz
+    type: nfs
+
+  config:
+    enabled: true
+    path: /var/storage/media/container-data/qbittorrent
     server: nfs.007337.xyz
     type: nfs
 
