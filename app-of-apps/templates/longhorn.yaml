@@ -15,7 +15,7 @@ spec:
       helm:
         values: |
           defaultSettings:
-            defaultDataPath: /var/longhorn/
+            defaultDataPath: /mnt/sdb
             backupTarget: nfs://nfs.home.007337.xyz:/var/storage/backup/longhorn/
           preUpgradeChecker:
             jobEnabled: false

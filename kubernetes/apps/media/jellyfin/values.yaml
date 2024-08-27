@@ -7,16 +7,14 @@ service:
     type: ClusterIP
 controllers:
   main:
-    type: statefulset
+    strategy: RollingUpdate
+    pod:
+      securityContext:
+        runAsUser: 1100
+        runAsGroup: &group 1100
+        fsGroup: *group
+        fsGroupChangePolicy: "OnRootMismatch"
 
-    statefulset:
-      volumeClaimTemplates:
-        - name: config
-          globalMounts:
-            - path: /config
-          storageClass: longhorn
-          accessMode: ReadWriteOnce
-          size: 1Gi
     containers:
       main:
         env:
@@ -59,6 +57,11 @@ persistence:
   data:
     enabled: true
     path: /var/storage/media/
+    server: nfs.007337.xyz
+    type: nfs
+  config:
+    enabled: true
+    path: /var/storage/media/container-data/jellyfin
     server: nfs.007337.xyz
     type: nfs
   cache:
