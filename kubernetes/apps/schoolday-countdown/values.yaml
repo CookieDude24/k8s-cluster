@@ -1,0 +1,45 @@
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: &port 80
+    type: ClusterIP
+controllers:
+  main:
+    strategy: Recreate
+    containers:
+      main:
+        image:
+          pullPolicy: IfNotPresent
+          repository: ghcr.io/cookiedude24/school-day-countdown
+          tag: sha256-ccf767701f9840efa3b1d087ae91fa7f24cec470d12b98b69c3763c0b7e6f9cf.sig
+        probes:
+          probes:
+            liveness: &probe
+              enabled: true
+              custom: true
+              type: HTTP
+              spec:
+                initialDelaySeconds: 0
+                periodSeconds: 10
+                timeoutSeconds: 1
+                failureThreshold: 3
+                httpGet:
+                  path: &path /
+                  port: *port
+
+            readiness: *probe
+
+            startup:
+              enabled: true
+              custom: true
+              type: HTTP
+              spec:
+                initialDelaySeconds: 0
+                timeoutSeconds: 1
+                periodSeconds: 5
+                failureThreshold: 30
+                httpGet:
+                  path: *path
+                  port: *port
