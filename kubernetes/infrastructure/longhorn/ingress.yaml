@@ -9,7 +9,7 @@ spec:
     - web
   routes:
     - kind: Rule
-      match: Host(`kube.007337.xyz`) && PathPrefix(`/longhorn`)"
+      match: Host(`kube.007337.xyz`) && PathPrefix(`/longhorn`)
       middlewares:
         - name: authentik
           namespace: longhorn-system
@@ -19,7 +19,7 @@ spec:
         - name: longhorn-frontend
           port: 80
     - kind: Rule
-      match: Host(`kube.007337.xyz`) && PathPrefix(`/longhorn/outpost.goauthentik.io/`)"
+      match: Host(`kube.007337.xyz`) && PathPrefix(`/longhorn/outpost.goauthentik.io/`)
       priority: 15
       services:
         - kind: Service
