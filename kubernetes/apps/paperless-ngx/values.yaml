@@ -20,17 +20,16 @@ controllers:
           repository: ghcr.io/paperless-ngx/paperless-ngx
           tag: 2.8.6
         env:
-          PAPERLESS_URL: https://home.007337.xyz
-          PAPERLESS_STATIC_URL: /paperless/
+          PAPERLESS_URL: https://paperless.007337.xyz
           PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
           PAPERLESS_PORT: 8000
           PAPERLESS_CONSUMER_POLLING: 60
           PAPERLESS_CONSUMER_RECURSIVE: "true"
           PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS: "true"
-          PAPERLESS_CONSUMPTION_DIR: /data/fileserver/consume
-          PAPERLESS_DATA_DIR: /library/data
-          PAPERLESS_EXPORT_DIR: /data/fileserver/export
-          PAPERLESS_MEDIA_ROOT: /library/media
+
+          PAPERLESS_CONSUMPTION_DIR: /data/consume
+          PAPERLESS_EXPORT_DIR: /data/export
+
           PAPERLESS_OCR_LANGUAGE: deu+eng
           PAPERLESS_REDIS: redis://localhost:6379
           PAPERLESS_TASK_WORKERS: 2
@@ -40,7 +39,7 @@ controllers:
           PAPERLESS_TIME_ZONE: Europe/Vienna
           PAPERLESS_ACCOUNT_ALLOW_SIGNUPS: "false"
           PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS: "true"
-          PAPERLESS_DISABLE_REGULAR_LOGIN: "true"
+          PAPERLESS_DISABLE_REGULAR_LOGIN: "false"
           PAPERLESS_DBENGINE: postgresql
           PAPERLESS_DBHOST: localhost
 
@@ -97,15 +96,15 @@ controllers:
           requests:
             cpu: 10m
       redis:
-        order: 1
         image:
-          repository: public.ecr.aws/docker/library/redis
-          tag: 7.2.5
-        ports:
-          - containerPort: 6379
-        env:
-          REDIS_REPLICATION_MODE: master
-        command: [ "redis-server" ]
+          repository: redis
+          tag: 7.2.5@sha256:01afb31d6d633451d84475ff3eb95f8c48bf0ee59ec9c948b161adb4da882053
+        resources:
+          limits:
+            memory: 50Mi
+          requests:
+            cpu: 10m
+            memory: 18Mi
 
 
 persistence:
@@ -113,23 +112,17 @@ persistence:
     enabled: true
     existingClaim: paperless-library
     globalMounts:
-      - path: /library
+      - path: /usr/paperless/data
+      - path: /usr/paperless/media
   pg-data:
     enabled: true
     existingClaim: paperless-pg-data
     globalMounts:
-      - path: /var/lib/postgresql
-  nas-consume:
+      - path: /var/lib/postgresql/data
+  nas:
     enabled: true
-    path: /var/storage/paperless/consume
+    path: /var/storage/paperless
     server: nfs.007337.xyz
     type: nfs
     globalMounts:
-      - path: /data/fileserver/consume
-  nas-export:
-    enabled: true
-    path: /var/storage/paperless/export
-    server: nfs.007337.xyz
-    type: nfs
-    globalMounts:
-      - path: /data/fileserver/export
+      - path: /data
