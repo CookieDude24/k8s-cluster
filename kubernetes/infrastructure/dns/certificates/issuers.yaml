@@ -16,7 +16,7 @@ spec:
               key: api-key
               name: cloudflare-api-key
         selector:
-          dnsZones: ["007337.xyz"]
+          dnsZones: ["007337.xyz","maxid.me"]
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -35,4 +35,4 @@ spec:
               key: api-key
               name: cloudflare-api-key
         selector:
-          dnsZones: ["007337.xyz"]
+          dnsZones: ["007337.xyz","maxid.me"]

@@ -9,7 +9,7 @@ spec:
     - web
   routes:
     - kind: Rule
-      match: Host(`home.007337.xyz`) && PathPrefix(`/paperless`)"
+      match: Host(`paperless.007337.xyz`)
       middlewares:
         - name: httpcats
           namespace: kube-system
