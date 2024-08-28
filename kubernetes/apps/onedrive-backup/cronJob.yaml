@@ -53,3 +53,38 @@ spec:
                 - mountPath: /cache
                   name: cache-volume
 
+          containers:
+            - name: upload
+              image: driveone/onedrive:fedora
+              env:
+                - name: ONEDRIVE_UPLOADONLY
+                  value: "1"
+                - name: ONEDRIVE_NOREMOTEDELETE
+                  value: "1"
+                - name: ONEDRIVE_UID
+                  value: "1100"
+                - name: ONEDRIVE_GID
+                  value: "1100"
+              volumeMounts:
+                - mountPath: /cache
+                  name: cache-volume
+                - mountPath: /onedrive/data
+                  name: cache-volume
+                - mountPath: /onedrive/conf
+                  name: config
+
+          volumes:
+            - name: data
+              nfs:
+                server: nfs.007337.xyz
+                path: /var/storage
+                readOnly: true
+            - name: config
+              nfs:
+                server: nfs.007337.xyz
+                path: /var/storage/onedrive-backup/conf
+            - name: cache-volume
+              emptyDir:
+                sizeLimit: 10Gi
+
+          restartPolicy: Never
