@@ -1,0 +1,55 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-fileserver
+  namespace: default
+spec:
+  schedule: '*/1 * * * *'
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          initContainers:
+            - name: create directories
+              image: fedora
+              command: [ "/bin/sh" ]
+              args: [ "-c","mkdir /cache/data && mkdir /cache/backup" ]
+              volumeMounts:
+                - mountPath: /cache
+                  name: cache-volume
+
+            - name: copy data
+              image: fedora
+              command: ["/bin/sh"]
+              args: ["-c","cp -r /data/backup /cache/data/"]
+              volumeMounts:
+                - mountPath: /data
+                  name: data
+                  readOnly: true
+                - mountPath: /cache
+                  name: cache-volume
+
+
+
+            - name: archive
+              image: fedora
+              command: [ "/bin/sh" ]
+              args: [ "-c","tar -cvzf /cache/backup/backup-$(date '+%F_%H:%M:%S').tar.gz /cache/data" ]
+              volumeMounts:
+                - mountPath: /cache
+                  name: cache-volume
+
+            - name: encrypt archive
+              image: fedora
+              env:
+                - name: PASS
+                  valueFrom:
+                    secretKeyRef:
+                      key: encrypt-key
+                      name: onedrive-backup-encryption-keys
+              command: [ "/bin/sh" ]
+              args: [ "-c","echo ${PASS} | gpg --batch --yes --passphrase-fd 0 -c /cache/backup/backup-*.tar.gz && rm -f /cache/backup/backup-*.tar.gz" ]
+              volumeMounts:
+                - mountPath: /cache
+                  name: cache-volume
+
